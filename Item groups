@@ -1,0 +1,16 @@
+http://www.gw2spidy.com/api/v0.9/json/all-items/#	Number 	Items				
+	
+http://www.gw2spidy.com/api/v0.9/json/all-items/2		65		Bags				 
+http://www.gw2spidy.com/api/v0.9/json/all-items/3		2274	Misc				
+http://www.gw2spidy.com/api/v0.9/json/all-items/4		304		Containers/Satchels
+http://www.gw2spidy.com/api/v0.9/json/all-items/5		1098	Crafting component
+http://www.gw2spidy.com/api/v0.9/json/all-items/7		41		Endless Potions/tonics
+http://www.gw2spidy.com/api/v0.9/json/all-items/11	173		Mini's
+http://www.gw2spidy.com/api/v0.9/json/all-items/13	3			Salvage Kits
+http://www.gw2spidy.com/api/v0.9/json/all-items/15	1362	Accessory
+http://www.gw2spidy.com/api/v0.9/json/all-items/16	262		Junk
+http://www.gw2spidy.com/api/v0.9/json/all-items/17	531		Upgrade components.
+http://www.gw2spidy.com/api/v0.9/json/all-items/18	11469	Weapons
+
+
+The google cache cannot take the "/all-items/all" command as it takes too long to cache them, take what you need and use the filter for any one where you are taking a few ID's.

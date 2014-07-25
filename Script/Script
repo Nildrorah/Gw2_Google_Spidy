@@ -49,17 +49,26 @@ function clearLog() {
       $id = $IDList[$i][0]; // due to the way the getRange function works, the IDs are in a 2D array [[id1], [id2], [id3], ... [idn]]
       Utilities.sleep(Math.random() * 1000);
       $itemObject = JSON.parse($cache.get($id));  // convert JSON text in cache into an object
-      $itemList[$i] = new Array(5); 
+       $itemList[$i] = new Array(14); 
       if (($id > 0) && ($itemObject != null)) {   // convert object into an array
-        $itemList[$i][0] = $itemObject.name;        
-        $itemList[$i][1] = $itemObject.max_offer_unit_price;
-        $itemList[$i][2] = $itemObject.min_sale_unit_price;
-        $itemList[$i][3] = $itemObject.price_last_changed;
-        $itemList[$i][4] = "=(OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),-1,0)+1)";        
+        $itemList[$i][0] = $itemObject.name;
+        $itemList[$i][1] = $itemObject.rarity;
+        $itemList[$i][2] = $itemObject.restriction_level;
+        $itemList[$i][3] = $itemObject.img;
+        $itemList[$i][4] = $itemObject.type_id;
+        $itemList[$i][5] = $itemObject.sub_type_id;
+        $itemList[$i][6] = $itemObject.price_last_changed;
+        $itemList[$i][7] = $itemObject.max_offer_unit_price;
+        $itemList[$i][8] = $itemObject.min_sale_unit_price;
+        $itemList[$i][9] = $itemObject.offer_availability;
+        $itemList[$i][10] = $itemObject.sale_availability;
+        $itemList[$i][11] = $itemObject.sale_price_change_last_hour;
+        $itemList[$i][12] = $itemObject.offer_price_change_last_hour;
+        $itemList[$i][13] = "=(OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),-1,0)+1)";        
         }
       else {
         $itemList[$i][0] = "Error: ID not in cache";
-        $itemList[$i][4] = "=(OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),-1,0)+1)";
+        $itemList[$i][13] = "=(OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),-1,0)+1)";
       } 
     }    
     return $itemList;
@@ -125,7 +134,7 @@ function clearLog() {
     if ($cache.get("Connection Error") == "" || $cache.get("Connection Error") == null) {  
       var $IDList = $sheet.getRange(2, 1, $sheet.getLastRow() - 1, 1).getValues();  // returns 2-D array [row][column] with id stored, [[id1], [id2], etc.]
       $itemList = fetchCachedData($IDList, $cache);                                 // fetches the cached data and returns 2D Array [row][column]
-      $sheet.getRange(2, 2, $IDList.length, 5).setValues($itemList);               // write data to spreadsheet
+      $sheet.getRange(2, 2, $IDList.length, 14).setValues($itemList);               // write data to spreadsheet
   
       writeToLog("Detected " + $IDList.length + " ID(s) in sheet " + $sheetName + ". Data refreshed successfully.", new Date(), $logsheet, $logFlag);
     } else {

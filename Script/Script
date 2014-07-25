@@ -40,7 +40,7 @@ function clearLog() {
   };
   
 // take range contained IDs and return 2D array of data from the cache.
-// Edit lines 57 to 60 to filter the data to what you need.
+// Edit lines 54 to 66 to filter the data to what you need.
   function fetchCachedData($IDList, $cache) {
     var $itemObject = null;
     var $id = 0;

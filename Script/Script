@@ -27,11 +27,11 @@
 
 // Clear the Log
 function clearLog() {
-     $ss = SpreadsheetApp.openById("12N-m_meM1ogWBxUh-RM_FJftQ7c0VY6rO103PMxch4A"); 
-     $shee = $ss.getSheetByName("Log"); 
-     $shee.getRange(2, 1, $shee.getLastRow(), 6).clearContent();
+     $sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Log"); 
+     $sheet.getRange(2, 1, $sheet.getLastRow(), 6).clearContent();
 
   };
+  
   
 // removes characters that could crash a JSON parse
   function makeJSONsafe($unsafe) {

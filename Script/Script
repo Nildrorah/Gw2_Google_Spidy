@@ -1,80 +1,78 @@
-// Refresh function, thic can be put on a timer to automate updating.
-// This cleares the cache, updates it and refreshes the data.
+// Varibles
+	$sheetname    = "Data";
+    $logsheetname = "Log";
+	$startRow     = 3;
+
+// refresh 
     function refresh(){
       expireCache();
       updateAll();
-    }
-// Updating Function 
-    function updateAll() {
-      $url = [
-		// This is used to pull the data of an item type- more information in the Item Codes section. 
-        "http://www.gw2spidy.com/api/v0.9/json/all-items/#",
-		// This is for small amounts of items not feasible to pull the data for, eg weapons.
-        "http://www.gw2spidy.com/api/v0.9/json/items/all/?filter_ids=#,#,#,#",
-      ];
-	// This will deposit the data in a sheet named Data.
-    $sheetname = "Data";
-	// This gives the log sheet to record the data, currently not working properly
-    $logsheetname = "Log";
-    updateRawData($url, $sheetname, $logsheetname);
+      updategems();
     }
 
+// Clear the Log
+function clearLog() {
+     $shee = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Log"); 
+     $shee.getRange(2, 1, $shee.getLastRow(), 6).clearContent();
+  };
+
+
+    function refreshdata(){
+      $cache = CacheService.getPublicCache();
+    }
+
+
+// Updating Function 
+   function updateAll() {     
+
+	$url = [];
+	var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName($sheetname);
+	var noIDs = 100;
+	var IDListLength = sheet.getLastRow();
+	var repeatRough = IDListLength / noIDs;
+	var repeat = Math.ceil(repeatRough); 
+	
+	 for (var i = 0; i < repeat;){
+        var selection = i * noIDs;
+        var row = $startRow + selection;
+		var idlist0 = sheet.getRange(row, 1, noIDs, 1).getValues();
+		var idlist1 = "http://www.gw2spidy.com/api/v0.9/json/items/all/?filter_ids="  // Base
+		var idlist2 = idlist0.join(",");
+		var idlist3 = idlist1 +" "+ idlist2;
+		$url.push(idlist3)
+        i++
+		}
+	updateRawData($url, $sheetname, $logsheetname);   
+	}
+ 
+    
 // expire the cache by setting the cache status to null
+
   function expireCache() {
     $cache = CacheService.getPublicCache();
     $cache.remove("Cache Status");
   };
 
-// Clear the Log
-function clearLog() {
-     $sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Log"); 
-     $sheet.getRange(2, 1, $sheet.getLastRow(), 6).clearContent();
-
-  };
-  
-  
+        
+// Menu
+        function onOpen() {
+        var ui = SpreadsheetApp.getUi();
+        // Or DocumentApp or FormApp.
+        ui.createMenu('Sheet Tools')
+        .addItem('Refresh', 'refresh')
+        .addSeparator()
+        .addItem('Clear Log', 'clearLog')
+        .addToUi();
+}
 // removes characters that could crash a JSON parse
+
   function makeJSONsafe($unsafe) {
     $safe = $unsafe.replace(/(\u000A)+|(\n)+|\u000A|(\u000D)+|\u000D|\u000A\u000D|\n\r/g, ' ');
     return $safe;
   };
-  
-// take range contained IDs and return 2D array of data from the cache.
-// Edit lines 54 to 66 to filter the data to what you need.
-  function fetchCachedData($IDList, $cache) {
-    var $itemObject = null;
-    var $id = 0;
-    var $itemList = new Array($IDList.length);    
-    for (var $i = 0; $i < $IDList.length; $i++) {    
-      $id = $IDList[$i][0]; // due to the way the getRange function works, the IDs are in a 2D array [[id1], [id2], [id3], ... [idn]]
-      Utilities.sleep(Math.random() * 1000);
-      $itemObject = JSON.parse($cache.get($id));  // convert JSON text in cache into an object
-       $itemList[$i] = new Array(14); 
-      if (($id > 0) && ($itemObject != null)) {   // convert object into an array
-        $itemList[$i][0] = $itemObject.name;
-        $itemList[$i][1] = $itemObject.rarity;
-        $itemList[$i][2] = $itemObject.restriction_level;
-        $itemList[$i][3] = $itemObject.img;
-        $itemList[$i][4] = $itemObject.type_id;
-        $itemList[$i][5] = $itemObject.sub_type_id;
-        $itemList[$i][6] = $itemObject.price_last_changed;
-        $itemList[$i][7] = $itemObject.max_offer_unit_price;
-        $itemList[$i][8] = $itemObject.min_sale_unit_price;
-        $itemList[$i][9] = $itemObject.offer_availability;
-        $itemList[$i][10] = $itemObject.sale_availability;
-        $itemList[$i][11] = $itemObject.sale_price_change_last_hour;
-        $itemList[$i][12] = $itemObject.offer_price_change_last_hour;
-        $itemList[$i][13] = "=(OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),-1,0)+1)";        
-        }
-      else {
-        $itemList[$i][0] = "Error: ID not in cache";
-        $itemList[$i][13] = "=(OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),-1,0)+1)";
-      } 
-    }    
-    return $itemList;
-  }; 
 
 // retrives JSON from Spidy and adds item data to the cache 
+ 
   function add2CacheFromSpidy($JSONURL) {
     var $options = { "muteHttpExceptions" : true };        // muting HTTP exceptions prevents script from crashing with HTTP error
  
@@ -110,8 +108,8 @@ function clearLog() {
   function writeToLog($message, $date, $sheet, $flag) {
     if ($flag) { 
       var $row = $sheet.getLastRow()+1;
-      $sheet.getRange($row, 1).setValue($date);
-      $sheet.getRange($row, 2).setValue($message);
+      $sheet.getRange($row, 2).setValue($date);
+      $sheet.getRange($row, 3).setValue($message);
     }
   };
 
@@ -124,17 +122,17 @@ function clearLog() {
       var $logsheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName($logsheetName);
       $logFlag = 1;                                                                 // only log is a logsheet is specified
     }
-    if ($cache.get("Cache Status") == null)    // if Cache Status is null data is old
+   if ($cache.get("Cache Status") == null)    // if Cache Status is null data is old
     { writeToLog("Cache update started.", new Date(), $logsheet, $logFlag);
       add2CacheFromSpidy($url);                // update the cache from URL
       $cache = CacheService.getPublicCache();  // refresh cache variable (is this a pointer? can i get rid of this line?
-      writeToLog($cache.get("Cache Status"), new Date(), $logsheet, $logFlag);
-    }
+      //writeToLog($cache.get("Cache Status"), new Date(), $logsheet, $logFlag);
+    } 
      
     if ($cache.get("Connection Error") == "" || $cache.get("Connection Error") == null) {  
-      var $IDList = $sheet.getRange(2, 1, $sheet.getLastRow() - 1, 1).getValues();  // returns 2-D array [row][column] with id stored, [[id1], [id2], etc.]
+      var $IDList = $sheet.getRange(3, 1, $sheet.getLastRow() - 2, 1).getValues();  // returns 2-D array [row][column] with id stored, [[id1], [id2], etc.]
       $itemList = fetchCachedData($IDList, $cache);                                 // fetches the cached data and returns 2D Array [row][column]
-      $sheet.getRange(2, 2, $IDList.length, 14).setValues($itemList);               // write data to spreadsheet
+      $sheet.getRange(3, 2, $IDList.length, 14).setValues($itemList);               // write data to spreadsheet
   
       writeToLog("Detected " + $IDList.length + " ID(s) in sheet " + $sheetName + ". Data refreshed successfully.", new Date(), $logsheet, $logFlag);
     } else {
@@ -143,3 +141,52 @@ function clearLog() {
   };
 
 
+// take range contained IDs and return 2D array of data from the cache
+  function fetchCachedData($IDList, $cache) {
+    var $itemObject = null;
+    var $id = 0;
+    var $itemList = new Array($IDList.length);    
+    for (var $i = 0; $i < $IDList.length; $i++) {    
+      $id = $IDList[$i][0]; // due to the way the getRange function works, the IDs are in a 2D array [[id1], [id2], [id3], ... [idn]]
+      $itemObject = JSON.parse($cache.get($id));  // convert JSON text in cache into an object
+      $itemList[$i] = new Array(14); 
+      if (($id > 0) && ($itemObject != null)) {   // convert object into an array
+        $itemList[$i][0] = "=(OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),-1,0)+1)"; 
+		$itemList[$i][1] = $itemObject.name;
+		$itemList[$i][2] = $itemObject.max_offer_unit_price;
+		$itemList[$i][3] = $itemObject.min_sale_unit_price;
+		$itemList[$i][4] = $itemObject.price_last_changed;
+		$itemList[$i][5] = $itemObject.offer_availability;
+		$itemList[$i][6] = $itemObject.sale_availability;
+		$itemList[$i][7] = $itemObject.offer_price_change_last_hour/100;
+		$itemList[$i][8] = $itemObject.sale_price_change_last_hour/100;
+		$itemList[$i][9] = $itemObject.type_id;
+		$itemList[$i][10] = $itemObject.sub_type_id;
+		$itemList[$i][11] = $itemObject.rarity;
+		$itemList[$i][12] = $itemObject.restriction_level;
+		$itemList[$i][13] = $itemObject.img;
+        
+        }
+      else {
+        $itemList[$i][0] = "=(OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),-1,0)+1)";
+		$itemList[$i][1] = "Error: ID not in cache";
+        
+      } 
+    }    
+    return $itemList;
+  }; 
+
+
+// Gems
+
+  function updategems(){
+  var gems = "http://www.gw2spidy.com/api/v0.9/json/gem-price";
+  var jsonData = UrlFetchApp.fetch(gems);
+  var jsonString = jsonData.getContentText();
+  var jsonObject = JSON.parse(jsonString).result; // create object and remove "result" wrapper 
+  var buyValuea = (jsonObject.gold_to_gem);
+  var sellValuea = (jsonObject.gem_to_gold);
+  var buyValue = buyValuea/100;
+  var sellValue = sellValuea/100;
+  return [buyValue, sellValue];
+}
